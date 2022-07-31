@@ -33,27 +33,26 @@ void main() {
       expect(provider.isInitialized, true);
     }, timeout: const Timeout(Duration(seconds: 2)));
 
-    test('Create user should delegate to logIn function', () async {
-      /** 
+    test('Create user should get expected values', () async {
+      /**
       final badEmailUser = await provider.createUser(
-        email: 'foo@bar.com',
+        email: 'foobar@baz.com',
         password: 'anypassword',
       );
 
       expect(badEmailUser,
-          throwsA(const TypeMatcher<UserNotFoundAuthException>()));
-      
+          throwsA(const TypeMatcher<EmailAlreadyInUseAuthException>()));
 
-      final badPasswordUser = await provider.createUser(
-          email: 'someone@bar.com', password: 'foobar');
+      final badPasswordUser =
+          await provider.createUser(email: 'someone@bar.com', password: 'any');
 
       expect(badPasswordUser,
-          throwsA(const TypeMatcher<WrongPasswordAuthException>()));
-
+          throwsA(const TypeMatcher<WeakPassWordAuthException>()));
+      
       */
 
       final user = await provider.createUser(
-          email: 'fooBaz@bar.com', password: 'password');
+          email: 'fooBarBaz@bar.com', password: 'password');
 
       expect(provider.currentUser, user);
       expect(user.isEmailVerified, false);
@@ -66,10 +65,28 @@ void main() {
       expect(user!.isEmailVerified, true);
     });
 
+    test('Should be able to log in', () async {
+      /** 
+      final badEmailUser = await provider.logIn(
+        email: 'foo@bar.com',
+        password: 'anypassword',
+      );
+
+      expect(badEmailUser,
+          throwsA(const TypeMatcher<UserNotFoundAuthException>()));
+
+      final badPasswordUser =
+          await provider.logIn(email: 'someone@bar.com', password: 'foobar');
+
+      expect(badPasswordUser,
+          throwsA(const TypeMatcher<WrongPasswordAuthException>()));
+      */
+    });
+
     test('Should be able to log out and log in again', () async {
       await provider.logOut();
       await provider.logIn(
-        email: 'email',
+        email: 'email@gmail.com',
         password: 'password',
       );
 
@@ -93,10 +110,11 @@ class MockAuthProvider implements AuthProvider {
   }) async {
     if (!isInitialized) throw NotInitializedException();
     await Future.delayed(const Duration(seconds: 1));
-    return logIn(
-      email: email,
-      password: password,
-    );
+    if (email == 'foobar@baz.com') throw EmailAlreadyInUseAuthException();
+    if (password == 'any') throw WeakPassWordAuthException();
+    const user = AuthUser(isEmailVerified: false);
+    _user = user;
+    return Future.value(user);
   }
 
   @override
