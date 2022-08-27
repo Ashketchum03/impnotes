@@ -60,7 +60,10 @@ class _NotesViewState extends State<NotesView> {
         ],
       ),
       body: FutureBuilder(
-        future: _notesService.getOrCreateUser(email: userEmail),
+        future: _notesService.getOrCreateUser(
+          email: userEmail,
+          setAsCurrentUser: true,
+        ),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
